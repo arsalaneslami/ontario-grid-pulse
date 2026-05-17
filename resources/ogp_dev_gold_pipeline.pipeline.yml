@@ -1,0 +1,13 @@
+resources:
+  pipelines:
+    ogp_dev_gold_pipeline:
+      name: ogp_dev_gold_pipeline
+      catalog: ${var.catalog}
+      schema: gold
+      serverless: true
+      photon: true
+      channel: CURRENT
+      continuous: false
+      libraries:
+        - notebook:
+            path: ../src/gold/gold_pipeline.py

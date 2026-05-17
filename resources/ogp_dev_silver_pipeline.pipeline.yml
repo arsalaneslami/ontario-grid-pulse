@@ -1,0 +1,13 @@
+resources:
+  pipelines:
+    ogp_dev_silver_pipeline:
+      name: ogp_dev_silver_pipeline
+      catalog: ${var.catalog}
+      schema: silver
+      serverless: true
+      photon: true
+      channel: CURRENT
+      continuous: false
+      libraries:
+        - notebook:
+            path: ../src/silver/silver_pipeline.py

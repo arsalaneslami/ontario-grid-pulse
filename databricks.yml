@@ -1,0 +1,36 @@
+# databricks.yml — Ontario Grid Pulse bundle
+
+bundle:
+  name: ontario-grid-pulse
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog where this deployment writes
+    default: ogp_dev
+  notifications_email:
+    description: Email for job/pipeline notifications
+    default: aranassir@hotmail.com
+  schedule_pause_status:
+    description: Pause status for scheduled triggers (PAUSED or UNPAUSED)
+    default: PAUSED
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-7405607543594877.17.azuredatabricks.net
+    variables:
+      catalog: ogp_dev
+      schedule_pause_status: PAUSED
+
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-7405607543594877.17.azuredatabricks.net
+    variables:
+      catalog: ogp_prod
+      schedule_pause_status: UNPAUSED

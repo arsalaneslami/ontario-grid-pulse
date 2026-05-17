@@ -1,0 +1,64 @@
+resources:
+  jobs:
+    ogp_dev_daily_ingestion:
+      name: ogp-dev-daily-ingestion
+      description: 'Daily orchestration: Bronze ingestion → Silver pipeline → Gold pipeline.'
+
+      max_concurrent_runs: 1
+      timeout_seconds: 0
+      performance_target: PERFORMANCE_OPTIMIZED
+      queue:
+        enabled: true
+
+      tags:
+        project: ontario-grid-pulse
+        environment: dev
+        owner: aranassir
+
+      email_notifications:
+        no_alert_for_skipped_runs: false
+        on_start:
+          - ${var.notifications_email}
+        on_success:
+          - ${var.notifications_email}
+        on_failure:
+          - ${var.notifications_email}
+
+      schedule:
+        quartz_cron_expression: 0 0 6 * * ?
+        timezone_id: America/Toronto
+        pause_status: ${var.schedule_pause_status}
+
+      tasks:
+        - task_key: ingest-ieso-demand
+          notebook_task:
+            notebook_path: ../src/bronze/ingest_ieso_demand.ipynb
+            source: WORKSPACE
+          max_retries: 2
+          min_retry_interval_millis: 120000
+
+        - task_key: ingest-eccc-weather
+          notebook_task:
+            notebook_path: ../src/bronze/ingest_eccc_weather.ipynb
+            source: WORKSPACE
+          max_retries: 2
+          min_retry_interval_millis: 120000
+
+        - task_key: run-silver-pipeline
+          depends_on:
+            - task_key: ingest-ieso-demand
+            - task_key: ingest-eccc-weather
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.ogp_dev_silver_pipeline.id}
+            full_refresh: false
+          max_retries: 1
+          min_retry_interval_millis: 300000
+
+        - task_key: run-gold-pipeline
+          depends_on:
+            - task_key: run-silver-pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.ogp_dev_gold_pipeline.id}
+            full_refresh: true
+          max_retries: 1
+          min_retry_interval_millis: 300000
