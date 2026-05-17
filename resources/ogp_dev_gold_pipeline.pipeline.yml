@@ -1,7 +1,7 @@
 resources:
   pipelines:
-    ogp_dev_gold_pipeline:
-      name: ogp_dev_gold_pipeline
+    gold_pipeline:
+      name: ogp_${bundle.target}_gold_pipeline
       catalog: ${var.catalog}
       schema: gold
       serverless: true

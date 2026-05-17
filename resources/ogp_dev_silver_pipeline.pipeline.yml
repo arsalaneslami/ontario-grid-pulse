@@ -1,7 +1,7 @@
 resources:
   pipelines:
-    ogp_dev_silver_pipeline:
-      name: ogp_dev_silver_pipeline
+    silver_pipeline:
+      name: ogp_${bundle.target}_silver_pipeline
       catalog: ${var.catalog}
       schema: silver
       serverless: true

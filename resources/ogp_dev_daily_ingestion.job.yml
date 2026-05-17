@@ -1,7 +1,7 @@
 resources:
   jobs:
-    ogp_dev_daily_ingestion:
-      name: ogp-dev-daily-ingestion
+    daily_ingestion:
+      name: ogp-${bundle.target}-daily-ingestion
       description: 'Daily orchestration: Bronze ingestion → Silver pipeline → Gold pipeline.'
 
       max_concurrent_runs: 1
@@ -12,7 +12,7 @@ resources:
 
       tags:
         project: ontario-grid-pulse
-        environment: dev
+        environment: ${bundle.target}
         owner: aranassir
 
       email_notifications:
@@ -49,7 +49,7 @@ resources:
             - task_key: ingest-ieso-demand
             - task_key: ingest-eccc-weather
           pipeline_task:
-            pipeline_id: ${resources.pipelines.ogp_dev_silver_pipeline.id}
+            pipeline_id: ${resources.pipelines.silver_pipeline.id}
             full_refresh: false
           max_retries: 1
           min_retry_interval_millis: 300000
@@ -58,7 +58,7 @@ resources:
           depends_on:
             - task_key: run-silver-pipeline
           pipeline_task:
-            pipeline_id: ${resources.pipelines.ogp_dev_gold_pipeline.id}
+            pipeline_id: ${resources.pipelines.gold_pipeline.id}
             full_refresh: true
           max_retries: 1
           min_retry_interval_millis: 300000
