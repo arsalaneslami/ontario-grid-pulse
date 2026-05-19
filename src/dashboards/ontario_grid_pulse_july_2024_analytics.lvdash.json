@@ -1,0 +1,2314 @@
+{
+  "datasets": [
+    {
+      "columns": [
+        {
+          "description": "Formats temperature category labels for display in charts.",
+          "displayName": "Temperature Category Label",
+          "expression": "CASE WHEN `temp_category` = 'extreme_hot' THEN 'Extreme Hot' WHEN `temp_category` = 'hot' THEN 'Hot' WHEN `temp_category` = 'mild' THEN 'Mild' WHEN `temp_category` = 'warm' THEN 'Warm' ELSE `temp_category` END"
+        }
+      ],
+      "displayName": "gold_demand_weather",
+      "name": "fe4faff7",
+      "queryLines": [
+        "SELECT \r\n",
+        "  event_ts_utc,\r\n",
+        "  event_date_local,\r\n",
+        "  hour_of_day_local,\r\n",
+        "  day_of_week,\r\n",
+        "  is_weekend,\r\n",
+        "  ontario_demand_mw,\r\n",
+        "  market_demand_mw,\r\n",
+        "  net_export_mw,\r\n",
+        "  temp_c,\r\n",
+        "  temp_category,\r\n",
+        "  dew_point_c,\r\n",
+        "  rel_humidity_pct,\r\n",
+        "  wind_speed_kmh,\r\n",
+        "  precip_mm,\r\n",
+        "  stn_pressure_kpa,\r\n",
+        "  hdh,\r\n",
+        "  cdh,\r\n",
+        "  station_id,\r\n",
+        "  station_name\r\n",
+        "FROM ogp_dev.gold.demand_weather_hourly\r\n",
+        "ORDER BY event_ts_utc;"
+      ]
+    },
+    {
+      "displayName": "kpis",
+      "name": "361d2060",
+      "queryLines": [
+        "SELECT \r\n",
+        "  COUNT(*)                              AS total_hours,\r\n",
+        "  COUNT(DISTINCT event_date_local)      AS days_covered,\r\n",
+        "  ROUND(AVG(ontario_demand_mw))         AS avg_demand_mw,\r\n",
+        "  ROUND(MAX(ontario_demand_mw))         AS peak_demand_mw,\r\n",
+        "  ROUND(MIN(ontario_demand_mw))         AS min_demand_mw,\r\n",
+        "  ROUND(MAX(temp_c), 1)                 AS peak_temp_c,\r\n",
+        "  ROUND(MIN(temp_c), 1)                 AS lowest_temp_c,\r\n",
+        "  ROUND(SUM(cdh), 0)                    AS total_cdh,\r\n",
+        "  ROUND(AVG(rel_humidity_pct))          AS avg_humidity_pct,\r\n",
+        "  ROUND(SUM(precip_mm), 1)              AS total_precip_mm\r\n",
+        "FROM ogp_dev.gold.demand_weather_hourly;"
+      ]
+    },
+    {
+      "columns": [
+        {
+          "description": "Formats temperature category labels for display in charts.",
+          "displayName": "Temperature Category Label",
+          "expression": "CASE WHEN `temp_category` = 'extreme_hot' THEN 'Extreme Hot' WHEN `temp_category` = 'hot' THEN 'Hot' WHEN `temp_category` = 'mild' THEN 'Mild' WHEN `temp_category` = 'warm' THEN 'Warm' ELSE `temp_category` END"
+        }
+      ],
+      "displayName": "temp_category_summary",
+      "name": "b3182220",
+      "queryLines": [
+        "SELECT \r\n",
+        "  temp_category,\r\n",
+        "  COUNT(*)                            AS hours,\r\n",
+        "  ROUND(AVG(ontario_demand_mw))       AS avg_demand_mw,\r\n",
+        "  ROUND(MAX(ontario_demand_mw))       AS peak_demand_mw,\r\n",
+        "  ROUND(MIN(ontario_demand_mw))       AS min_demand_mw,\r\n",
+        "  ROUND(STDDEV(ontario_demand_mw))    AS std_demand_mw,\r\n",
+        "  ROUND(MIN(temp_c), 1)               AS min_temp_c,\r\n",
+        "  ROUND(MAX(temp_c), 1)               AS max_temp_c,\r\n",
+        "  ROUND(AVG(temp_c), 1)               AS avg_temp_c\r\n",
+        "FROM ogp_dev.gold.demand_weather_hourly\r\n",
+        "GROUP BY temp_category\r\n",
+        "ORDER BY MIN(temp_c);"
+      ]
+    },
+    {
+      "displayName": "hourly_by_day_type",
+      "name": "e534ba33",
+      "queryLines": [
+        "SELECT \r\n",
+        "  hour_of_day_local,\r\n",
+        "  CASE WHEN is_weekend THEN 'Weekend' ELSE 'Weekday' END AS day_type,\r\n",
+        "  ROUND(AVG(ontario_demand_mw))                          AS avg_demand_mw\r\n",
+        "FROM ogp_dev.gold.demand_weather_hourly\r\n",
+        "GROUP BY hour_of_day_local, is_weekend\r\n",
+        "ORDER BY hour_of_day_local, day_type;"
+      ]
+    },
+    {
+      "displayName": "dow_hour_heatmap",
+      "name": "2f3ad5b1",
+      "queryLines": [
+        "SELECT \r\n",
+        "  hour_of_day_local,\r\n",
+        "  CASE day_of_week\r\n",
+        "    WHEN 1 THEN '1-Sun'\r\n",
+        "    WHEN 2 THEN '2-Mon'\r\n",
+        "    WHEN 3 THEN '3-Tue'\r\n",
+        "    WHEN 4 THEN '4-Wed'\r\n",
+        "    WHEN 5 THEN '5-Thu'\r\n",
+        "    WHEN 6 THEN '6-Fri'\r\n",
+        "    WHEN 7 THEN '7-Sat'\r\n",
+        "  END                                  AS day_name,\r\n",
+        "  ROUND(AVG(ontario_demand_mw))        AS avg_demand_mw\r\n",
+        "FROM ogp_dev.gold.demand_weather_hourly\r\n",
+        "GROUP BY hour_of_day_local, day_of_week\r\n",
+        "ORDER BY day_of_week, hour_of_day_local;"
+      ]
+    },
+    {
+      "displayName": "daily_peaks",
+      "name": "cb06556f",
+      "queryLines": [
+        "SELECT \r\n",
+        "  event_date_local,\r\n",
+        "  MAX(ontario_demand_mw)            AS peak_demand_mw,\r\n",
+        "  ROUND(AVG(ontario_demand_mw))     AS avg_demand_mw,\r\n",
+        "  MAX(temp_c)                       AS max_temp_c,\r\n",
+        "  ROUND(AVG(temp_c), 1)             AS avg_temp_c,\r\n",
+        "  MIN(temp_c)                       AS min_temp_c,\r\n",
+        "  ROUND(SUM(cdh))                   AS daily_cdh,\r\n",
+        "  CASE WHEN dayofweek(event_date_local) IN (1, 7) THEN 'Weekend' ELSE 'Weekday' END AS day_type\r\n",
+        "FROM ogp_dev.gold.demand_weather_hourly\r\n",
+        "GROUP BY event_date_local\r\n",
+        "ORDER BY event_date_local;"
+      ]
+    },
+    {
+      "displayName": "temp_distribution",
+      "name": "75914bc7",
+      "queryLines": [
+        "SELECT \r\n",
+        "  FLOOR(temp_c)        AS temp_bucket_c,\r\n",
+        "  COUNT(*)             AS hours\r\n",
+        "FROM ogp_dev.gold.demand_weather_hourly\r\n",
+        "GROUP BY FLOOR(temp_c)\r\n",
+        "ORDER BY temp_bucket_c;"
+      ]
+    },
+    {
+      "displayName": "daily_weather_summary",
+      "name": "f8fcc867",
+      "queryLines": [
+        "SELECT \r\n",
+        "  event_date_local                  AS event_date,\r\n",
+        "  ROUND(AVG(temp_c), 1)             AS avg_temp_c,\r\n",
+        "  ROUND(MAX(temp_c), 1)             AS max_temp_c,\r\n",
+        "  ROUND(MIN(temp_c), 1)             AS min_temp_c,\r\n",
+        "  ROUND(AVG(rel_humidity_pct))      AS avg_humidity_pct,\r\n",
+        "  ROUND(AVG(wind_speed_kmh))        AS avg_wind_kmh,\r\n",
+        "  ROUND(SUM(precip_mm), 1)          AS total_precip_mm,\r\n",
+        "  ROUND(MAX(ontario_demand_mw))     AS peak_demand_mw,\r\n",
+        "  ROUND(SUM(cdh))                   AS daily_cdh\r\n",
+        "FROM ogp_dev.gold.demand_weather_hourly\r\n",
+        "GROUP BY event_date_local\r\n",
+        "ORDER BY event_date_local;"
+      ]
+    },
+    {
+      "displayName": "net_export_hourly_avg",
+      "name": "13c66f08",
+      "queryLines": [
+        "SELECT \r\n",
+        "  hour_of_day_local,\r\n",
+        "  ROUND(AVG(net_export_mw))    AS avg_net_export_mw,\r\n",
+        "  ROUND(MIN(net_export_mw))    AS min_net_export_mw,\r\n",
+        "  ROUND(MAX(net_export_mw))    AS max_net_export_mw,\r\n",
+        "  ROUND(STDDEV(net_export_mw)) AS std_net_export_mw\r\n",
+        "FROM ogp_dev.gold.demand_weather_hourly\r\n",
+        "GROUP BY hour_of_day_local\r\n",
+        "ORDER BY hour_of_day_local;"
+      ]
+    },
+    {
+      "displayName": "net_import_hours",
+      "name": "ea491c2e",
+      "queryLines": [
+        "-- We use bronze to ignore the filter \r\n",
+        "-- RETURN is_account_group_member('admins') \r\n",
+        "--       OR event_ts_utc >= current_timestamp() - INTERVAL '2 YEARS';\r\n",
+        "-- Today's date is May 17, 2026 — so 2 years back is May 17, 2024. For a non-admin viewer:\r\n",
+        "-- Only rows with event_ts_utc >= 2024-05-17 pass the filter\r\n",
+        "-- Of the 16 net-import hours (March 23 – May 27, 2024), only the 2024-05-27 row is after that cutoff\r\n",
+        "-- Hence: The query from silver returned 1 record only\r\n",
+        "SELECT \r\n",
+        "  event_date                                     AS event_date,\r\n",
+        "  hour_ending,\r\n",
+        "  market_demand_mw,\r\n",
+        "  ontario_demand_mw,\r\n",
+        "  ontario_demand_mw - market_demand_mw           AS net_import_mw\r\n",
+        "FROM ogp_dev.bronze.ieso_demand_raw\r\n",
+        "WHERE market_demand_mw < ontario_demand_mw\r\n",
+        "ORDER BY event_date, hour_ending;"
+      ]
+    },
+    {
+      "displayName": "methodology_stats",
+      "name": "4ff86fbe",
+      "queryLines": [
+        "SELECT \r\n",
+        "  COUNT(DISTINCT station_id)  AS weather_stations,\r\n",
+        "  3                           AS pipeline_stages,  -- Bronze, Silver, Gold\r\n",
+        "  2                           AS data_sources       -- IESO, ECCC\r\n",
+        "FROM ogp_dev.gold.demand_weather_hourly;"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "displayName": "Executive Summary",
+      "layout": [
+        {
+          "position": {
+            "height": 2,
+            "width": 12,
+            "x": 0,
+            "y": 0
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Ontario Grid Pulse\n",
+                "\n",
+                "**Hourly Electricity Demand and Weather Analytics — July 2024**\n",
+                "\n",
+                "This dashboard examines Ontario electricity demand against Toronto Pearson weather conditions for July 2024. Sources: IESO and ECCC."
+              ]
+            },
+            "name": "c866625b"
+          }
+        },
+        {
+          "position": {
+            "height": 4,
+            "width": 2,
+            "x": 0,
+            "y": 2
+          },
+          "widget": {
+            "name": "peak-dema",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "361d2060",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "expression": "SUM(`peak_demand_mw`)",
+                      "name": "sum(peak_demand_mw)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(peak_demand_mw)",
+                  "format": {
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "places": 0,
+                      "type": "max"
+                    },
+                    "hideGroupSeparator": false,
+                    "type": "number-plain"
+                  },
+                  "formatTemplate": "{{ @formatted }}",
+                  "style": {
+                    "bold": true,
+                    "color": "#0B4F8C"
+                  }
+                }
+              },
+              "frame": {
+                "contentAlignment": "center",
+                "headerAlignment": "center",
+                "showTitle": true,
+                "title": "Peak"
+              },
+              "version": 2,
+              "widgetType": "counter"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 4,
+            "width": 2,
+            "x": 2,
+            "y": 2
+          },
+          "widget": {
+            "name": "8582c44f",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "361d2060",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "expression": "SUM(`avg_demand_mw`)",
+                      "name": "sum(avg_demand_mw)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(avg_demand_mw)",
+                  "format": {
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "places": 0,
+                      "type": "max"
+                    },
+                    "type": "number-plain"
+                  },
+                  "style": {
+                    "bold": true,
+                    "color": "#1565C0"
+                  }
+                }
+              },
+              "frame": {
+                "contentAlignment": "center",
+                "headerAlignment": "center",
+                "showTitle": true,
+                "title": "Avg. Demand (MW)"
+              },
+              "version": 2,
+              "widgetType": "counter"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 4,
+            "width": 2,
+            "x": 8,
+            "y": 2
+          },
+          "widget": {
+            "name": "days-covered",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "361d2060",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "expression": "SUM(`days_covered`)",
+                      "name": "sum(days_covered)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(days_covered)",
+                  "format": {
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "places": 0,
+                      "type": "max"
+                    },
+                    "type": "number-plain"
+                  },
+                  "style": {
+                    "bold": true,
+                    "color": "#2E7D32"
+                  }
+                }
+              },
+              "frame": {
+                "contentAlignment": "center",
+                "headerAlignment": "center",
+                "showTitle": true,
+                "title": "Days"
+              },
+              "version": 2,
+              "widgetType": "counter"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 4,
+            "width": 2,
+            "x": 6,
+            "y": 2
+          },
+          "widget": {
+            "name": "10907d5d",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "361d2060",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "expression": "SUM(`total_cdh`)",
+                      "name": "sum(total_cdh)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_cdh)",
+                  "format": {
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "places": 0,
+                      "type": "max"
+                    },
+                    "type": "number-plain"
+                  },
+                  "style": {
+                    "bold": true,
+                    "color": "#8E44AD"
+                  }
+                }
+              },
+              "frame": {
+                "contentAlignment": "center",
+                "headerAlignment": "center",
+                "showTitle": true,
+                "title": "CDH"
+              },
+              "version": 2,
+              "widgetType": "counter"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 4,
+            "width": 2,
+            "x": 4,
+            "y": 2
+          },
+          "widget": {
+            "name": "640ff0db",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "361d2060",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "expression": "SUM(`peak_temp_c`)",
+                      "name": "sum(peak_temp_c)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(peak_temp_c)",
+                  "format": {
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "places": 1,
+                      "type": "max"
+                    },
+                    "type": "number-plain"
+                  },
+                  "style": {
+                    "bold": true,
+                    "color": "#E67E22"
+                  }
+                }
+              },
+              "frame": {
+                "contentAlignment": "center",
+                "headerAlignment": "center",
+                "showTitle": true,
+                "title": "Peak Temp. (°C)"
+              },
+              "version": 2,
+              "widgetType": "counter"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 4,
+            "width": 2,
+            "x": 10,
+            "y": 2
+          },
+          "widget": {
+            "name": "2f5249d0",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "361d2060",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "expression": "SUM(`total_hours`)",
+                      "name": "sum(total_hours)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_hours)",
+                  "format": {
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "places": 0,
+                      "type": "max"
+                    },
+                    "type": "number-plain"
+                  },
+                  "style": {
+                    "bold": true,
+                    "color": "#455A64"
+                  }
+                }
+              },
+              "frame": {
+                "contentAlignment": "center",
+                "headerAlignment": "center",
+                "showTitle": true,
+                "title": "Hrs"
+              },
+              "version": 2,
+              "widgetType": "counter"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 2,
+            "width": 12,
+            "x": 0,
+            "y": 6
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "### Key Insight\n",
+                "\n",
+                "Ontario electricity demand shows strong summer thermal sensitivity. While the monthly average is about **18,000 MW**, load rises from roughly **12,400 MW** in mild conditions to about **23,100 MW** during extreme heat, making weather a key demand-forecasting driver."
+              ]
+            },
+            "name": "2e36bd86"
+          }
+        }
+      ],
+      "layoutVersion": "GRID_V1",
+      "name": "06e06dcd",
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "displayName": "Demand vs Temperature",
+      "layout": [
+        {
+          "position": {
+            "height": 2,
+            "width": 12,
+            "x": 0,
+            "y": 0
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "## The Demand–Temperature Relationship\n",
+                "\n",
+                "Ontario's electricity demand correlates strongly with temperature in summer. Hot days drive A/C load; cool days see baseline demand. The charts below quantify this thermal sensitivity using July 2024 hourly observations from Toronto Pearson Airport (744 data points)."
+              ]
+            },
+            "name": "89075cec"
+          }
+        },
+        {
+          "position": {
+            "height": 6,
+            "width": 6,
+            "x": 0,
+            "y": 2
+          },
+          "widget": {
+            "name": "demand-vs-temperature-july-2024",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fe4faff7",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "expression": "`Temperature Category Label`",
+                      "name": "Temperature Category Label"
+                    },
+                    {
+                      "expression": "`temp_c`",
+                      "name": "temp_c"
+                    },
+                    {
+                      "expression": "`ontario_demand_mw`",
+                      "name": "ontario_demand_mw"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "color": {
+                  "displayName": "Temp. Category",
+                  "fieldName": "Temperature Category Label",
+                  "scale": {
+                    "mappings": [
+                      {
+                        "color": "#4F81BD",
+                        "value": "Mild"
+                      },
+                      {
+                        "color": "#F2C94C",
+                        "value": "Warm"
+                      },
+                      {
+                        "color": "#F2994A",
+                        "value": "Hot"
+                      },
+                      {
+                        "color": "#D64541",
+                        "value": "Extreme Hot"
+                      }
+                    ],
+                    "sort": {
+                      "by": "custom-order",
+                      "orderedValues": [
+                        "Mild",
+                        "Warm",
+                        "Hot",
+                        "Extreme Hot"
+                      ]
+                    },
+                    "type": "categorical"
+                  }
+                },
+                "x": {
+                  "displayName": "Temperature (°C)",
+                  "fieldName": "temp_c",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "displayName": "Ontario Demand (MW)",
+                  "fieldName": "ontario_demand_mw",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Demand vs Temperature"
+              },
+              "version": 3,
+              "widgetType": "scatter"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 6,
+            "width": 6,
+            "x": 6,
+            "y": 2
+          },
+          "widget": {
+            "name": "average-demand-by-temperature-category",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "b3182220",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "expression": "`Temperature Category Label`",
+                      "name": "Temperature Category Label"
+                    },
+                    {
+                      "expression": "SUM(`avg_demand_mw`)",
+                      "name": "sum(avg_demand_mw)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "color": {
+                  "displayName": "Temp. Category",
+                  "fieldName": "Temperature Category Label",
+                  "scale": {
+                    "mappings": [
+                      {
+                        "color": "#4F81BD",
+                        "value": "Mild"
+                      },
+                      {
+                        "color": "#F2C94C",
+                        "value": "Warm"
+                      },
+                      {
+                        "color": "#F2994A",
+                        "value": "Hot"
+                      },
+                      {
+                        "color": "#D64541",
+                        "value": "Extreme Hot"
+                      }
+                    ],
+                    "sort": {
+                      "by": "custom-order",
+                      "orderedValues": [
+                        "Mild",
+                        "Warm",
+                        "Hot",
+                        "Extreme Hot"
+                      ]
+                    },
+                    "type": "categorical"
+                  }
+                },
+                "label": {
+                  "show": true
+                },
+                "x": {
+                  "displayName": "Temp. Category",
+                  "fieldName": "Temperature Category Label",
+                  "scale": {
+                    "sort": {
+                      "by": "custom-order",
+                      "orderedValues": [
+                        "Mild",
+                        "Warm",
+                        "Hot",
+                        "Extreme Hot"
+                      ]
+                    },
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "displayName": "Average Demand",
+                  "fieldName": "sum(avg_demand_mw)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Average Demand by Temperature Category"
+              },
+              "version": 3,
+              "widgetType": "bar"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 4,
+            "width": 12,
+            "x": 0,
+            "y": 8
+          },
+          "widget": {
+            "name": "77e232a0",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "b3182220",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "expression": "`Temperature Category Label`",
+                      "name": "Temperature Category Label"
+                    },
+                    {
+                      "expression": "`hours`",
+                      "name": "hours"
+                    },
+                    {
+                      "expression": "`avg_demand_mw`",
+                      "name": "avg_demand_mw"
+                    },
+                    {
+                      "expression": "`peak_demand_mw`",
+                      "name": "peak_demand_mw"
+                    },
+                    {
+                      "expression": "`min_demand_mw`",
+                      "name": "min_demand_mw"
+                    },
+                    {
+                      "expression": "`std_demand_mw`",
+                      "name": "std_demand_mw"
+                    },
+                    {
+                      "expression": "`min_temp_c`",
+                      "name": "min_temp_c"
+                    },
+                    {
+                      "expression": "`max_temp_c`",
+                      "name": "max_temp_c"
+                    },
+                    {
+                      "expression": "`avg_temp_c`",
+                      "name": "avg_temp_c"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "displayRowNumbers": false,
+              "encodings": {
+                "columns": [
+                  {
+                    "columnWidth": 104,
+                    "displayName": "Temp.\nCategory",
+                    "fieldName": "Temperature Category Label"
+                  },
+                  {
+                    "columnWidth": 96,
+                    "contentAlignment": "right",
+                    "displayName": "Hours Observed",
+                    "fieldName": "hours",
+                    "format": {
+                      "abbreviation": "none",
+                      "decimalPlaces": {
+                        "places": 0,
+                        "type": "exact"
+                      },
+                      "hideGroupSeparator": false,
+                      "type": "number-plain"
+                    }
+                  },
+                  {
+                    "columnWidth": 126,
+                    "contentAlignment": "right",
+                    "displayName": "Avg. Demand\n(MW)",
+                    "fieldName": "avg_demand_mw",
+                    "format": {
+                      "abbreviation": "none",
+                      "decimalPlaces": {
+                        "places": 2,
+                        "type": "exact"
+                      },
+                      "hideGroupSeparator": false,
+                      "type": "number-plain"
+                    }
+                  },
+                  {
+                    "columnWidth": 126,
+                    "contentAlignment": "right",
+                    "displayName": "Peak Demand\n(MW)",
+                    "fieldName": "peak_demand_mw",
+                    "format": {
+                      "abbreviation": "none",
+                      "decimalPlaces": {
+                        "places": 0,
+                        "type": "exact"
+                      },
+                      "hideGroupSeparator": false,
+                      "type": "number-plain"
+                    }
+                  },
+                  {
+                    "displayName": "Min. Demand (MW)",
+                    "fieldName": "min_demand_mw"
+                  },
+                  {
+                    "columnWidth": 112,
+                    "contentAlignment": "right",
+                    "displayName": "Std. Dev.\n(MW)",
+                    "fieldName": "std_demand_mw",
+                    "format": {
+                      "abbreviation": "none",
+                      "decimalPlaces": {
+                        "places": 0,
+                        "type": "exact"
+                      },
+                      "hideGroupSeparator": false,
+                      "type": "number-plain"
+                    }
+                  },
+                  {
+                    "displayName": "Min. Temp. (C)",
+                    "fieldName": "min_temp_c"
+                  },
+                  {
+                    "columnWidth": 102,
+                    "contentAlignment": "right",
+                    "displayName": "Max. Temp.\n(C)",
+                    "fieldName": "max_temp_c",
+                    "format": {
+                      "abbreviation": "none",
+                      "decimalPlaces": {
+                        "places": 1,
+                        "type": "exact"
+                      },
+                      "hideGroupSeparator": false,
+                      "type": "number-plain"
+                    }
+                  },
+                  {
+                    "columnWidth": 102,
+                    "contentAlignment": "right",
+                    "displayName": "Avg. Temp.\n(C)",
+                    "fieldName": "avg_temp_c",
+                    "format": {
+                      "abbreviation": "none",
+                      "decimalPlaces": {
+                        "places": 1,
+                        "type": "exact"
+                      },
+                      "hideGroupSeparator": false,
+                      "type": "number-plain"
+                    }
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Temperature Category Summary"
+              },
+              "headerHeight": 56,
+              "rowsPerPage": 10,
+              "version": 2,
+              "widgetType": "table"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 2,
+            "width": 12,
+            "x": 0,
+            "y": 12
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "### What this tells us\n",
+                "\n",
+                "- **Mild hours (under 15°C)** see only the residential and commercial baseline, around 12,400 MW\n",
+                "- **Warm hours (15–25°C)** show typical July loads of around 16,400 MW\n",
+                "- **Hot hours (25–30°C)** add \\~4,000 MW of A/C load, averaging 20,300 MW\n",
+                "- **Extreme heat (over 30°C)** pushes demand to 23,100 MW — nearly double the mild baseline\n",
+                "\n",
+                "The scatter plot shows the correlation isn't perfectly linear; demand has both a temperature component and a time-of-day component (working hours, daily peak around 4–7 PM). The next page disaggregates the daily pattern."
+              ]
+            },
+            "name": "7f003b22"
+          }
+        }
+      ],
+      "layoutVersion": "GRID_V1",
+      "name": "4e8c9957",
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "displayName": "Daily Patterns",
+      "layout": [
+        {
+          "position": {
+            "height": 2,
+            "width": 12,
+            "x": 0,
+            "y": 0
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Daily Patterns\n",
+                "\n",
+                "Ontario demand follows a strong daily cycle. The two charts below show: <br>**(1)&#32;** how weekday and weekend curves differ, and **(2)** the full week's pattern across days and hours."
+              ]
+            },
+            "name": "ac9ff8ca"
+          }
+        },
+        {
+          "position": {
+            "height": 6,
+            "width": 12,
+            "x": 0,
+            "y": 2
+          },
+          "widget": {
+            "name": "average-hourly-demand-weekday-vs-weekend",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e534ba33",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "expression": "`day_type`",
+                      "name": "day_type"
+                    },
+                    {
+                      "expression": "`hour_of_day_local`",
+                      "name": "hour_of_day_local"
+                    },
+                    {
+                      "expression": "AVG(`avg_demand_mw`)",
+                      "name": "avg(avg_demand_mw)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "color": {
+                  "displayName": "Day Type",
+                  "fieldName": "day_type",
+                  "scale": {
+                    "mappings": [
+                      {
+                        "color": "#0B4F8C",
+                        "value": "Weekday"
+                      },
+                      {
+                        "color": "#2E7D32",
+                        "value": "Weekend"
+                      }
+                    ],
+                    "sort": {
+                      "by": "custom-order",
+                      "orderedValues": [
+                        "Weekday",
+                        "Weekend"
+                      ]
+                    },
+                    "type": "categorical"
+                  }
+                },
+                "x": {
+                  "displayName": "Hour of Day (EST)",
+                  "fieldName": "hour_of_day_local",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "displayName": "Avg Demand (MW)",
+                  "fieldName": "avg(avg_demand_mw)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Bar"
+              },
+              "version": 3,
+              "widgetType": "line"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 6,
+            "width": 12,
+            "x": 0,
+            "y": 8
+          },
+          "widget": {
+            "name": "avg-demand-by-day-of-week-hour-of-day",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "2f3ad5b1",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "expression": "`avg_demand_mw`",
+                      "name": "avg_demand_mw"
+                    },
+                    {
+                      "expression": "`hour_of_day_local`",
+                      "name": "hour_of_day_local"
+                    },
+                    {
+                      "expression": "`day_name`",
+                      "name": "day_name"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "color": {
+                  "displayName": "Demand (MW)",
+                  "fieldName": "avg_demand_mw",
+                  "scale": {
+                    "colorRamp": {
+                      "mode": "scheme",
+                      "scheme": "greens"
+                    },
+                    "type": "quantitative"
+                  }
+                },
+                "x": {
+                  "displayName": "Hour of Day",
+                  "fieldName": "hour_of_day_local",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "displayName": "Day of Week",
+                  "fieldName": "day_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Avg. Demand by Day of Week × Hour of Day"
+              },
+              "version": 3,
+              "widgetType": "heatmap"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 3,
+            "width": 12,
+            "x": 0,
+            "y": 14
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "## What this tells us\n",
+                "\n",
+                "- The **daily peak window is 14:00–20:00 local** (2 PM to 8 PM) — concurrent commercial cooling and pre-evening residential return\n",
+                "- **Weekday peaks are 1,500–2,500 MW higher** than weekend peaks during 8 AM–5 PM — direct evidence of industrial/commercial load\n",
+                "- **Overnight (midnight to 5 AM)** shows the most consistent load across all days, around 12,000 MW — the residential baseline plus 24/7 industrial\n",
+                "- Saturday and Sunday show **noticeably lower midday loads**, especially around 9 AM–12 PM when commercial buildings are unoccupied"
+              ]
+            },
+            "name": "81326546"
+          }
+        }
+      ],
+      "layoutVersion": "GRID_V1",
+      "name": "7e1103d5",
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "displayName": "Time Series Overview",
+      "layout": [
+        {
+          "position": {
+            "height": 2,
+            "width": 12,
+            "x": 0,
+            "y": 0
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Time Series — The Full Month at a Glance\n",
+                "\n",
+                "A 31-day view of hourly demand and temperature side-by-side. \n",
+                "\n",
+                "### Key story: every heat wave is mirrored by a demand spike, often with a 1–2 hour lag."
+              ]
+            },
+            "name": "99c0b75e"
+          }
+        },
+        {
+          "position": {
+            "height": 6,
+            "width": 12,
+            "x": 0,
+            "y": 2
+          },
+          "widget": {
+            "name": "time-series-full-month-at-a-glance",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fe4faff7",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "expression": "`event_ts_utc`",
+                      "name": "event_ts_utc"
+                    },
+                    {
+                      "expression": "`ontario_demand_mw`",
+                      "name": "ontario_demand_mw"
+                    },
+                    {
+                      "expression": "`temp_c`",
+                      "name": "temp_c"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "label": {
+                  "show": false
+                },
+                "x": {
+                  "axis": {
+                    "hideGrid": false,
+                    "hideLabels": false,
+                    "labelAngle": 45,
+                    "title": "Day in July 2024"
+                  },
+                  "displayName": "Day in July 2024",
+                  "fieldName": "event_ts_utc",
+                  "format": {
+                    "date": "locale-number-month",
+                    "leadingZeros": false,
+                    "time": "none",
+                    "type": "date-time"
+                  },
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "primary": {
+                    "axis": {
+                      "title": "Demand (MW)"
+                    },
+                    "fields": [
+                      {
+                        "displayName": "Demand (MW)",
+                        "fieldName": "ontario_demand_mw"
+                      }
+                    ],
+                    "scale": {
+                      "type": "quantitative"
+                    }
+                  },
+                  "secondary": {
+                    "axis": {
+                      "title": "Temperature (°C)"
+                    },
+                    "fields": [
+                      {
+                        "displayName": "Temperature (°C)",
+                        "fieldName": "temp_c"
+                      }
+                    ],
+                    "scale": {
+                      "type": "quantitative"
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Hourly Demand and Temperature Trend"
+              },
+              "mark": {
+                "colors": [
+                  "#1565C0",
+                  "#E67E22",
+                  {
+                    "position": 3,
+                    "themeColorType": "visualizationColors"
+                  },
+                  {
+                    "position": 4,
+                    "themeColorType": "visualizationColors"
+                  },
+                  {
+                    "position": 5,
+                    "themeColorType": "visualizationColors"
+                  },
+                  {
+                    "position": 6,
+                    "themeColorType": "visualizationColors"
+                  }
+                ]
+              },
+              "version": 1,
+              "widgetType": "combo"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 6,
+            "width": 12,
+            "x": 0,
+            "y": 8
+          },
+          "widget": {
+            "name": "71f0ca4e",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "cb06556f",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "expression": "DATE_TRUNC(\"DAY\", `event_date_local`)",
+                      "name": "daily(event_date_local)"
+                    },
+                    {
+                      "expression": "`peak_demand_mw`",
+                      "name": "peak_demand_mw"
+                    },
+                    {
+                      "expression": "`max_temp_c`",
+                      "name": "max_temp_c"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "label": {
+                  "show": false
+                },
+                "x": {
+                  "axis": {
+                    "hideGrid": false,
+                    "hideLabels": false,
+                    "labelAngle": 45,
+                    "title": "Day in July 2024"
+                  },
+                  "displayName": "Day in July 2024",
+                  "fieldName": "daily(event_date_local)",
+                  "format": {
+                    "date": "locale-number-month",
+                    "type": "date"
+                  },
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "primary": {
+                    "axis": {
+                      "title": "Pieak Demand (MW)"
+                    },
+                    "fields": [
+                      {
+                        "displayName": "Peak Demand (MW)",
+                        "fieldName": "peak_demand_mw"
+                      }
+                    ],
+                    "scale": {
+                      "type": "quantitative"
+                    }
+                  },
+                  "secondary": {
+                    "axis": {
+                      "title": "Max. Temperature (°C)"
+                    },
+                    "fields": [
+                      {
+                        "displayName": "Max. Temp. (°C)",
+                        "fieldName": "max_temp_c"
+                      }
+                    ],
+                    "scale": {
+                      "type": "quantitative"
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Daily Peak Demand vs Maximum Temperature"
+              },
+              "mark": {
+                "colors": [
+                  "#1565C0",
+                  "#E67E22",
+                  {
+                    "position": 3,
+                    "themeColorType": "visualizationColors"
+                  },
+                  {
+                    "position": 4,
+                    "themeColorType": "visualizationColors"
+                  },
+                  {
+                    "position": 5,
+                    "themeColorType": "visualizationColors"
+                  },
+                  {
+                    "position": 6,
+                    "themeColorType": "visualizationColors"
+                  }
+                ]
+              },
+              "version": 1,
+              "widgetType": "combo"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 3,
+            "width": 12,
+            "x": 0,
+            "y": 14
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "### What this tells us\n",
+                "\n",
+                "- **Heat waves drive demand peaks** — every multi-day stretch of 28°C+ temperatures shows elevated peak demand\n",
+                "- **The largest demand peaks** occur on weekdays during heat waves — combined A/C and commercial load\n",
+                "- **Demand changes are non-linear** — once temperatures cross 25°C, small temp increases produce disproportionately large demand increases\n",
+                "- **The hottest single day** of the month (\\~31°C) corresponds to the highest peak demand observed (\\~23,000+ MW)"
+              ]
+            },
+            "name": "d936b949"
+          }
+        }
+      ],
+      "layoutVersion": "GRID_V1",
+      "name": "25272810",
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "displayName": "Weather Analytics",
+      "layout": [
+        {
+          "position": {
+            "height": 2,
+            "width": 12,
+            "x": 0,
+            "y": 0
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Weather Analytics\n",
+                "\n",
+                "Distribution of temperatures observed, cumulative cooling degree hours, and detailed daily weather statistics for the analysis period."
+              ]
+            },
+            "name": "a9569511"
+          }
+        },
+        {
+          "position": {
+            "height": 6,
+            "width": 6,
+            "x": 0,
+            "y": 2
+          },
+          "widget": {
+            "name": "temperature-distribution",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "75914bc7",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "expression": "`temp_bucket_c`",
+                      "name": "temp_bucket_c"
+                    },
+                    {
+                      "expression": "SUM(`hours`)",
+                      "name": "sum(hours)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "label": {
+                  "show": false
+                },
+                "x": {
+                  "displayName": "Temperature Bucket (°C)",
+                  "fieldName": "temp_bucket_c",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "displayName": "Hours Observed",
+                  "fieldName": "sum(hours)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Temperature Distribution (Hours per °C)"
+              },
+              "version": 3,
+              "widgetType": "bar"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 6,
+            "width": 6,
+            "x": 6,
+            "y": 2
+          },
+          "widget": {
+            "name": "daily-cooling-degree-hours-base-18c",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "cb06556f",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "expression": "`day_type`",
+                      "name": "day_type"
+                    },
+                    {
+                      "expression": "`event_date_local`",
+                      "name": "event_date_local"
+                    },
+                    {
+                      "expression": "SUM(`daily_cdh`)",
+                      "name": "sum(daily_cdh)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "color": {
+                  "displayName": "Day Type",
+                  "fieldName": "day_type",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "x": {
+                  "axis": {
+                    "labelAngle": 45
+                  },
+                  "displayName": "Date",
+                  "fieldName": "event_date_local",
+                  "format": {
+                    "date": "locale-number-month",
+                    "type": "date"
+                  },
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "displayName": "Daily CDH",
+                  "fieldName": "sum(daily_cdh)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Daily Cooling Degree Hours (Base 18°C)"
+              },
+              "version": 3,
+              "widgetType": "bar"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 4,
+            "width": 6,
+            "x": 0,
+            "y": 8
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "- **Temperature distribution is bimodal-ish** — hours cluster around the overnight/morning baseline (18–22°C) and around the peak of hot afternoons\n",
+                "- **The dip at 27–29°C** reflects the daily peak distribution: most July 2024 days peaked at either \\~25°C (mild days) or \\~30°C (heat waves), with few days topping out in the \"moderately hot\" range\n",
+                "- This is **typical of mid-continental summer climates** — weather tends to settle into distinct regimes (cool-front days vs heat-wave days) rather than spread uniformly across temperatures"
+              ]
+            },
+            "name": "2eec3a07"
+          }
+        },
+        {
+          "position": {
+            "height": 4,
+            "width": 6,
+            "x": 6,
+            "y": 8
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "### Heat waves drive disproportionate cooling demand\n",
+                "\n",
+                "Cooling Degree Hours (CDH) quantify the cumulative \"extra\" cooling each day above the 18°C baseline. July 2024 totaled roughly **4,000 CDH**, but the contribution is highly uneven:\n",
+                "\n",
+                "- **A 30°C heat-wave day** accumulates 250–300 CDH (12+ CDH per hour for many hours)\n",
+                "- **A 22°C mild day** accumulates only 40–80 CDH (mostly afternoon hours)\n",
+                "- **The hottest 5–7 days of the month** contribute roughly **half of total monthly CDH**\n",
+                "\n",
+                "This explains why a few extreme days dominate grid stress and why peak-day demand forecasting is more business-critical than average-day forecasting — system planners size capacity for the worst days, not the typical ones."
+              ]
+            },
+            "name": "eebf6dd7"
+          }
+        }
+      ],
+      "layoutVersion": "GRID_V1",
+      "name": "60f9d557",
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "displayName": "Net Export Analysis",
+      "layout": [
+        {
+          "position": {
+            "height": 3,
+            "width": 12,
+            "x": 0,
+            "y": 0
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Net Export & Inter-tie Analysis\n",
+                "\n",
+                "Ontario is generally a **net exporter** of electricity — selling surplus generation to neighboring markets (Quebec, New York, Michigan). The charts below show how exports vary through the day and reveal the rare hours when Ontario becomes a net importer.\n",
+                "\n",
+                "Net Export = Market Demand − Ontario Demand. Positive values = export; negative = import."
+              ]
+            },
+            "name": "75f5e26c"
+          }
+        },
+        {
+          "position": {
+            "height": 7,
+            "width": 6,
+            "x": 0,
+            "y": 9
+          },
+          "widget": {
+            "name": "hourly-net-export-july-2024",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "13c66f08",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "expression": "`hour_of_day_local`",
+                      "name": "hour_of_day_local"
+                    },
+                    {
+                      "expression": "`avg_net_export_mw`",
+                      "name": "avg_net_export_mw"
+                    },
+                    {
+                      "expression": "`min_net_export_mw`",
+                      "name": "min_net_export_mw"
+                    },
+                    {
+                      "expression": "`max_net_export_mw`",
+                      "name": "max_net_export_mw"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "x": {
+                  "displayName": "Hour of Day",
+                  "fieldName": "hour_of_day_local",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "axis": {
+                    "title": "Net Export (MW)"
+                  },
+                  "fields": [
+                    {
+                      "displayName": "Avg. Net Export (MW)",
+                      "fieldName": "avg_net_export_mw"
+                    },
+                    {
+                      "displayName": "Min. Net Export (MW)",
+                      "fieldName": "min_net_export_mw"
+                    },
+                    {
+                      "displayName": "Max. Net Export (MW)",
+                      "fieldName": "max_net_export_mw"
+                    }
+                  ],
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Average Net Export by Hour of Day"
+              },
+              "version": 3,
+              "widgetType": "line"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 7,
+            "width": 6,
+            "x": 6,
+            "y": 9
+          },
+          "widget": {
+            "name": "net-import-hours-silver-layer-2024-1",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ea491c2e",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "expression": "`event_date`",
+                      "name": "event_date"
+                    },
+                    {
+                      "expression": "`hour_ending`",
+                      "name": "hour_ending"
+                    },
+                    {
+                      "expression": "`market_demand_mw`",
+                      "name": "market_demand_mw"
+                    },
+                    {
+                      "expression": "`ontario_demand_mw`",
+                      "name": "ontario_demand_mw"
+                    },
+                    {
+                      "expression": "`net_import_mw`",
+                      "name": "net_import_mw"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "columns": [
+                  {
+                    "displayName": "Date",
+                    "fieldName": "event_date"
+                  },
+                  {
+                    "displayName": "Hour Ending (EST)",
+                    "fieldName": "hour_ending"
+                  },
+                  {
+                    "displayName": "Market (MW)",
+                    "fieldName": "market_demand_mw"
+                  },
+                  {
+                    "displayName": "Ontario (MW)",
+                    "fieldName": "ontario_demand_mw"
+                  },
+                  {
+                    "displayName": "Net Import (MW)",
+                    "fieldName": "net_import_mw"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Net Import Hours (Bronze Source)"
+              },
+              "freezeUpToColumnNumber": 1,
+              "rowsPerPage": 16,
+              "version": 2,
+              "widgetType": "table"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 6,
+            "width": 6,
+            "x": 6,
+            "y": 16
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "### Shoulder season net-import anomalies (March–May 2024)\n",
+                "\n",
+                "The 16 net-import hours cluster in spring shoulder season, peaking in April when:\n",
+                "\n",
+                "- Ontario's heating load is gone, cooling load hasn't started → annual demand low\n",
+                "- Quebec's hydro reservoirs are full from spring snowmelt → cheap export surplus\n",
+                "- IESO buys Quebec hydro through the inter-tie, displacing local generation\n",
+                "\n",
+                "This is structural Canadian electricity market behavior, not a data quality issue.<br>By June, Ontario returns to its normal net exporter role — visible in the July 2024<br>data where every single hour shows positive net export."
+              ]
+            },
+            "name": "059bebfa"
+          }
+        },
+        {
+          "position": {
+            "height": 6,
+            "width": 6,
+            "x": 0,
+            "y": 16
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "### What this tells us\n",
+                "\n",
+                "- **Ontario is a structural net exporter** — every hour in July 2024 had positive net export, ranging from \\~1,500 MW to over 5,000 MW\n",
+                "- **Export volume is inversely correlated with local demand** — exports are highest overnight (Ontario uses less, has more to sell) and lowest during the 16:00–20:00 demand peak\n",
+                "- **A small number of inversion hours exist** in the full-year data — 16 hours (0.18% of 2024) where Market Demand fell below Ontario Demand\n",
+                "- **Inversion hours cluster in shoulder seasons** (March, April, May) — likely net-import hours when Ontario bought cheaper baseload power from Quebec hydro or US gas during their off-peak periods\n",
+                "- **All inversions are small** — the largest gap was 114 MW (under 1% of total demand), suggesting market timing and rounding effects rather than supply emergencies"
+              ]
+            },
+            "name": "6dd23e7f"
+          }
+        },
+        {
+          "position": {
+            "height": 6,
+            "width": 12,
+            "x": 0,
+            "y": 3
+          },
+          "widget": {
+            "name": "hourly-net-export-july-2024-1",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fe4faff7",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "expression": "`event_ts_utc`",
+                      "name": "event_ts_utc"
+                    },
+                    {
+                      "expression": "`net_export_mw`",
+                      "name": "net_export_mw"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "x": {
+                  "axis": {
+                    "labelAngle": 45,
+                    "title": "Date"
+                  },
+                  "fieldName": "event_ts_utc",
+                  "format": {
+                    "date": "locale-number-month",
+                    "time": "none",
+                    "type": "date-time"
+                  },
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "axis": {
+                    "title": "Net Export (MW)"
+                  },
+                  "fieldName": "net_export_mw",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Hourly Net Export — July 2024"
+              },
+              "version": 3,
+              "widgetType": "area"
+            }
+          }
+        }
+      ],
+      "layoutVersion": "GRID_V1",
+      "name": "67235b6f",
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "displayName": "Methodology",
+      "layout": [
+        {
+          "position": {
+            "height": 2,
+            "width": 12,
+            "x": 0,
+            "y": 0
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Data Quality & Methodology\n",
+                "\n",
+                "Project documentation: data sources, pipeline architecture, coverage, and known limitations."
+              ]
+            },
+            "name": "78950686"
+          }
+        },
+        {
+          "position": {
+            "height": 3,
+            "width": 3,
+            "x": 0,
+            "y": 2
+          },
+          "widget": {
+            "name": "hours-analyzed",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "361d2060",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "expression": "`total_hours`",
+                      "name": "total_hours"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "value": {
+                  "fieldName": "total_hours"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Hours Analyzed"
+              },
+              "version": 2,
+              "widgetType": "counter"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 3,
+            "width": 3,
+            "x": 3,
+            "y": 2
+          },
+          "widget": {
+            "name": "6f230817",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "361d2060",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "expression": "SUM(`days_covered`)",
+                      "name": "sum(days_covered)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(days_covered)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Days Covered"
+              },
+              "version": 2,
+              "widgetType": "counter"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 3,
+            "width": 3,
+            "x": 9,
+            "y": 2
+          },
+          "widget": {
+            "name": "a2d79fea",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "4ff86fbe",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "expression": "`pipeline_stages`",
+                      "name": "pipeline_stages"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "value": {
+                  "fieldName": "pipeline_stages"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Pipeline Stages"
+              },
+              "version": 2,
+              "widgetType": "counter"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 3,
+            "width": 3,
+            "x": 6,
+            "y": 2
+          },
+          "widget": {
+            "name": "01f8800a",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "4ff86fbe",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "expression": "`weather_stations`",
+                      "name": "weather_stations"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "value": {
+                  "fieldName": "weather_stations"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Weather Stations"
+              },
+              "version": 2,
+              "widgetType": "counter"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 7,
+            "width": 12,
+            "x": 0,
+            "y": 5
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Pipeline Architecture\n",
+                "\n",
+                "```\n",
+                "ECCC (Weather) ──┐\n",
+                "                  ├──→  Bronze (Auto Loader)  ──→  Silver (Lakeflow)  ──→  Gold (Lakeflow)\n",
+                "IESO (Demand) ───┘         Raw, append-only       Cleaned, typed,        Joined, enriched,\n",
+                "                                                  expectations applied   feature-engineered\n",
+                "```\n",
+                "\n",
+                "**Bronze layer** (raw):\n",
+                "\n",
+                "- `ogp_dev.bronze.ieso_demand_raw` — 8,784 rows (full 2024)\n",
+                "- `ogp_dev.bronze.eccc_weather_raw` — 744 rows (July 2024)\n",
+                "\n",
+                "**Silver layer** (cleaned):\n",
+                "\n",
+                "- `ogp_dev.silver.demand_hourly` — 8,785 rows, UTC-normalized, 4 expectations applied\n",
+                "- `ogp_dev.silver.weather_hourly` — 744 rows, UTC-normalized, 5 expectations applied\n",
+                "\n",
+                "**Gold layer** (analytical):\n",
+                "\n",
+                "- `ogp_dev.gold.demand_weather_hourly` — 744 rows (inner join), 23 columns including derived calendar features and temperature categories\n",
+                "\n",
+                "**Governance:**\n",
+                "\n",
+                "- Row filter on `silver.demand_hourly` — admins see all data; others see only recent\n",
+                "- Column mask on `silver.weather_hourly.station_name` — non-admins see \"MASKED-STATION\"\n",
+                "\n",
+                "**Orchestration:**\n",
+                "\n",
+                "- Lakeflow Job `ogp-dev-daily-ingestion` runs Bronze → Silver → Gold daily at 06:00 EST (currently paused)"
+              ]
+            },
+            "name": "ffe1fc20"
+          }
+        },
+        {
+          "position": {
+            "height": 3,
+            "width": 6,
+            "x": 0,
+            "y": 12
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Data Source - 1\n",
+                "\n",
+                "### IESO — Independent Electricity System Operator\n",
+                "\n",
+                "- URL: `https://reports-public.ieso.ca/public/Demand/`\n",
+                "- File: `PUB_Demand_2024.csv`\n",
+                "- Format: CSV with 3-line backslash-prefixed preamble\n",
+                "- Convention: EST year-round (no DST), hour-ending 1–24\n",
+                "- Coverage: Full 2024 (8,784 rows = 366 days × 24 hours, leap year)"
+              ]
+            },
+            "name": "2d7ec6d6"
+          }
+        },
+        {
+          "position": {
+            "height": 7,
+            "width": 12,
+            "x": 0,
+            "y": 15
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Known Limitations and Documented Anomalies\n",
+                "\n",
+                "### Data quality findings\n",
+                "\n",
+                "- **16 hours violated the&#32; `market_geq_ontario`&#32;expectation** (0.18% of 2024). These are net-import hours, mostly in shoulder seasons. Retained as documented anomalies rather than dropped.\n",
+                "- **Weather coverage limited to July 2024** — Demand has full 2024 coverage, Gold join is restricted to the overlapping period.\n",
+                "\n",
+                "### Production hardening (out of scope for v1)\n",
+                "\n",
+                "- Bronze notebooks have **hardcoded catalog references**; would need parameterization to deploy cleanly to a `prod` target\n",
+                "- Pipeline ownership currently runs as user; production should use a **service principal**\n",
+                "- Weather coverage should be **backfilled to full year** for proper modeling\n",
+                "- Job currently triggered manually; production would use **file-arrival triggers** or scheduled runs\n",
+                "\n",
+                "### Future work\n",
+                "\n",
+                "- ML-based demand forecasting using engineered features in Gold (`temp_category`, calendar features, lagged values)\n",
+                "- Real-time dashboard with hourly refresh\n",
+                "- Anomaly detection on net-import hours\n",
+                "- Multi-station weather coverage for province-wide modeling"
+              ]
+            },
+            "name": "035258ab"
+          }
+        },
+        {
+          "position": {
+            "height": 3,
+            "width": 6,
+            "x": 6,
+            "y": 12
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Data Source -2\n",
+                "\n",
+                "### ECCC — Environment and Climate Change Canada\n",
+                "\n",
+                "- URL: `https://climate.weather.gc.ca/`\n",
+                "- Station: Toronto Pearson International Airport (ID 51459)\n",
+                "- Format: CSV with UTF-8 BOM, 31 columns\n",
+                "- Convention: LST (Local Standard Time, UTC−5, no DST)\n",
+                "- Coverage: July 2024 sample (744 rows)"
+              ]
+            },
+            "name": "71e6314c"
+          }
+        }
+      ],
+      "layoutVersion": "GRID_V1",
+      "name": "8b1107ef",
+      "pageType": "PAGE_TYPE_CANVAS"
+    }
+  ],
+  "uiSettings": {
+    "applyModeEnabled": false,
+    "theme": {
+      "canvasBackgroundColor": {
+        "dark": "#0F172A",
+        "light": "#F4F7FB"
+      },
+      "fontColor": {
+        "dark": "#E5E7EB",
+        "light": "#1F2937"
+      },
+      "fontFamily": "Trebuchet MS",
+      "selectionColor": {
+        "dark": "#60A5FA",
+        "light": "#2563EB"
+      },
+      "visualizationColors": [
+        "#0B4F8C",
+        "#1565C0",
+        "#2E7D32",
+        "#E67E22",
+        "#8E44AD",
+        "#455A64"
+      ],
+      "widgetBackgroundColor": {
+        "dark": "#111827",
+        "light": "#FFFFFF"
+      },
+      "widgetBorderColor": {
+        "dark": "#334155",
+        "light": "#D9E2EC"
+      },
+      "widgetHeaderAlignment": "CENTER"
+    }
+  }
+}

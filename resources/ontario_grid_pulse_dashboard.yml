@@ -1,0 +1,7 @@
+resources:
+  dashboards:
+    ontario_grid_pulse:
+      display_name: "Ontario Grid Pulse — ${bundle.target}"
+      file_path: ../src/dashboards/ontario_grid_pulse_july_2024_analytics.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+      parent_path: /Workspace/Users/aranassir@hotmail.com

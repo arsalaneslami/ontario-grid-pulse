@@ -16,6 +16,9 @@ variables:
   schedule_pause_status:
     description: Pause status for scheduled triggers (PAUSED or UNPAUSED)
     default: PAUSED
+  warehouse_id:
+    description: SQL Warehouse ID used by dashboards
+    default: d0c0b02cca96081e
 
 targets:
   dev:
@@ -34,6 +37,6 @@ targets:
       root_path: /Workspace/Users/aranassir@hotmail.com/.bundle/${bundle.name}/${bundle.target}
     variables:
       catalog: ogp_prod
-      schedule_pause_status: UNPAUSED
+      schedule_pause_status: PAUSED
     run_as:
       user_name: aranassir@hotmail.com
